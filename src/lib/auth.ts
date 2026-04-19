@@ -1,6 +1,7 @@
 import NextAuth from "next-auth"
-import { PrismaAdapter } from "@auth/prisma-adapter"
-import { prisma } from "./prisma"
+import { DrizzleAdapter } from "@auth/drizzle-adapter"
+import { db } from "./db"
+import { users, accounts, sessions, verificationTokens } from "./schema"
 
 // Steam OpenID 配置
 const SteamProvider = {
@@ -30,7 +31,7 @@ const SteamProvider = {
 }
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
-  adapter: PrismaAdapter(prisma),
+  adapter: DrizzleAdapter(db),
   providers: [
     SteamProvider as any,
   ],

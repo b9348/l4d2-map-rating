@@ -1,19 +1,21 @@
 import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { db } from '@/lib/db'
+import { maps, ratings, users } from '@/lib/schema'
+import { count } from 'drizzle-orm'
 
 export async function GET() {
   try {
     // 并行查询统计数据
-    const [mapCount, ratingCount, userCount] = await Promise.all([
-      prisma.map.count(),
-      prisma.rating.count(),
-      prisma.user.count(),
+    const [mapResult, ratingResult, userResult] = await Promise.all([
+      db.select({ count: count() }).from(maps),
+      db.select({ count: count() }).from(ratings),
+      db.select({ count: count() }).from(users),
     ])
 
     return NextResponse.json({
-      mapCount,
-      ratingCount,
-      userCount,
+      mapCount: mapResult[0]?.count || 0,
+      ratingCount: ratingResult[0]?.count || 0,
+      userCount: userResult[0]?.count || 0,
     })
   } catch (error: any) {
     console.error('Error fetching stats:', error)

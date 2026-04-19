@@ -1,7 +1,9 @@
 import { NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { db } from '@/lib/db'
+import { ratings, maps, users } from '@/lib/schema'
 import { auth } from '@/lib/auth'
 import { ratingSchema } from '@/lib/validations'
+import { eq, and, desc, avg, count } from 'drizzle-orm'
 
 // GET - 获取某地图的评分
 export async function GET(request: Request) {
@@ -13,17 +15,26 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'mapId required' }, { status: 400 })
     }
     
-    const ratings = await prisma.rating.findMany({
-      where: { mapId },
-      include: {
-        user: {
-          select: { name: true, avatar: true }
-        }
-      },
-      orderBy: { createdAt: 'desc' }
+    const result = await db.select({
+      id: ratings.id,
+      score: ratings.score,
+      comment: ratings.comment,
+      userId: ratings.userId,
+      createdAt: ratings.createdAt,
+      userName: users.name,
+      userAvatar: users.avatar,
     })
+    .from(ratings)
+    .leftJoin(users, eq(ratings.userId, users.id))
+    .where(eq(ratings.mapId, mapId))
+    .orderBy(desc(ratings.createdAt))
     
-    return NextResponse.json(ratings)
+    const formattedRatings = result.map(r => ({
+      ...r,
+      user: r.userId ? { name: r.userName, avatar: r.userAvatar } : null
+    }));
+
+    return NextResponse.json(formattedRatings)
   } catch (error: any) {
     console.error('Error fetching ratings:', error)
     return NextResponse.json({ 
@@ -47,48 +58,47 @@ export async function POST(request: Request) {
     let userId = session?.user?.id || null
     
     // 检查是否已评分
-    const existing = await prisma.rating.findFirst({
-      where: {
-        mapId: validated.data.mapId,
-        userId: userId
-      }
-    })
+    const [existing] = await db.select()
+      .from(ratings)
+      .where(and(
+        eq(ratings.mapId, validated.data.mapId),
+        userId ? eq(ratings.userId, userId) : undefined
+      ))
+      .limit(1)
     
     if (existing) {
       // 更新评分
-      await prisma.rating.update({
-        where: { id: existing.id },
-        data: {
+      await db.update(ratings)
+        .set({
           score: validated.data.score,
           comment: validated.data.comment || null
-        }
-      })
+        })
+        .where(eq(ratings.id, existing.id))
     } else {
       // 创建新评分
-      await prisma.rating.create({
-        data: {
-          score: validated.data.score,
-          comment: validated.data.comment || null,
-          mapId: validated.data.mapId,
-          userId
-        }
+      await db.insert(ratings).values({
+        id: crypto.randomUUID(),
+        score: validated.data.score,
+        comment: validated.data.comment || null,
+        mapId: validated.data.mapId,
+        userId
       })
     }
     
     // 重新计算平均分
-    const stats = await prisma.rating.aggregate({
-      where: { mapId: validated.data.mapId },
-      _avg: { score: true },
-      _count: { _all: true }
+    const [stats] = await db.select({
+      avgScore: avg(ratings.score),
+      totalCount: count()
     })
+    .from(ratings)
+    .where(eq(ratings.mapId, validated.data.mapId))
     
-    await prisma.map.update({
-      where: { id: validated.data.mapId },
-      data: {
-        averageRating: stats._avg.score || 0,
-        ratingCount: stats._count._all
-      }
-    })
+    await db.update(maps)
+      .set({
+        averageRating: Number(stats.avgScore) || 0,
+        ratingCount: stats.totalCount
+      })
+      .where(eq(maps.id, validated.data.mapId))
     
     return NextResponse.json({ 
       message: '评分提交成功'
