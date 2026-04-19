@@ -22,6 +22,8 @@ const SteamProvider = {
       "openid.return_to": `${baseUrl}/api/auth/callback/steam`,
     },
   },
+  // 关闭 state 校验以兼容 Steam OpenID 2.0
+  checks: [], 
   profile(profile: any) {
     return {
       id: profile.steamid,
