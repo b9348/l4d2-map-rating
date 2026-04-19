@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { RatingStars } from './RatingStars'
 import { toast } from 'sonner'
+import { api } from '@/lib/http'
 
 interface RatingModalProps {
   mapId: string
@@ -29,32 +30,18 @@ export function RatingModal({ mapId, isOpen, onClose, onSuccess }: RatingModalPr
     
     setIsSubmitting(true)
     
-    try {
-      const response = await fetch('/api/ratings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          mapId,
-          score,
-          comment: session ? comment : undefined, // 只有登录用户可以写评语
-        }),
-      })
-      
-      if (!response.ok) {
-        throw new Error('提交失败')
-      }
-      
-      toast.success('评分提交成功')
-      onSuccess?.()
-      onClose()
-      setScore(0)
-      setComment('')
-    } catch (error) {
-      console.error('Error submitting rating:', error)
-      toast.error('提交失败,请重试')
-    } finally {
-      setIsSubmitting(false)
-    }
+    const result = await api.post<{ message: string }>('/api/ratings', {
+      mapId,
+      score,
+      comment: session ? comment : undefined,
+    })
+    
+    toast.success(result.message)
+    onSuccess?.()
+    onClose()
+    setScore(0)
+    setComment('')
+    setIsSubmitting(false)
   }
   
   return (

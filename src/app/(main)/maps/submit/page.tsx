@@ -12,6 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { mapSchema, type MapInput } from '@/lib/validations'
 import { toast } from 'sonner'
 import { ExternalLink, Plus, X } from 'lucide-react'
+import { api } from '@/lib/http'
 
 export default function SubmitMapPage() {
   const router = useRouter()
@@ -64,7 +65,10 @@ export default function SubmitMapPage() {
   }
   
   const openImageHost = () => {
-    window.open(process.env.NEXT_PUBLIC_IMAGE_HOST_URL || 'https://sm.ms/', '_blank')
+    const url = process.env.NEXT_PUBLIC_IMAGE_HOST_URL
+    if (url) {
+      window.open(url, '_blank')
+    }
   }
   
   const onSubmit = async (data: MapInput) => {
@@ -78,29 +82,14 @@ export default function SubmitMapPage() {
     
     setIsSubmitting(true)
     
-    try {
-      const response = await fetch('/api/maps', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...data,
-          images: validImages,
-        }),
-      })
-      
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.message || '提交失败')
-      }
-      
-      toast.success('地图提交成功')
-      router.push('/')
-    } catch (error: any) {
-      console.error('Error submitting map:', error)
-      toast.error(error.message || '提交失败,请重试')
-    } finally {
-      setIsSubmitting(false)
-    }
+    const result = await api.post<{ message: string }>('/api/maps', {
+      ...data,
+      images: validImages,
+    })
+    
+    toast.success(result.message)
+    router.push('/')
+    setIsSubmitting(false)
   }
   
   return (

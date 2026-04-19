@@ -24,9 +24,12 @@ export async function GET(request: Request) {
     })
     
     return NextResponse.json(ratings)
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching ratings:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ 
+      error: error.message,
+      stack: error.stack 
+    }, { status: 500 })
   }
 }
 
@@ -87,9 +90,14 @@ export async function POST(request: Request) {
       }
     })
     
-    return NextResponse.json({ success: true })
-  } catch (error) {
+    return NextResponse.json({ 
+      message: '评分提交成功'
+    })
+  } catch (error: any) {
     console.error('Error submitting rating:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ 
+      error: error.message,
+      stack: error.stack 
+    }, { status: 500 })
   }
 }

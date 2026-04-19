@@ -12,8 +12,40 @@ import { RatingStars } from '@/components/RatingStars'
 import { RatingModal } from '@/components/RatingModal'
 import { ImageGallery } from '@/components/ImageGallery'
 import { Star, Calendar, User } from 'lucide-react'
+import { api } from '@/lib/http'
 
-const fetcher = (url: string) => fetch(url).then(res => res.json())
+interface MapDetailResponse {
+  maps: Array<{
+    id: string
+    nameZh: string | null
+    nameEn: string | null
+    description: string | null
+    images: string[]
+    averageRating: number
+    ratingCount: number
+    createdAt: string
+    submitter: {
+      name: string | null
+      avatar: string | null
+    }
+  }>
+}
+
+const fetcher = (url: string) => api.get<MapDetailResponse>(url)
+
+interface Rating {
+  id: string
+  score: number
+  comment: string | null
+  userId: string | null
+  createdAt: string
+  user?: {
+    name: string | null
+    avatar: string | null
+  }
+}
+
+const ratingsFetcher = (url: string) => api.get<Rating[]>(url)
 
 export default function MapDetailPage() {
   const params = useParams()
@@ -32,7 +64,7 @@ export default function MapDetailPage() {
   // 获取评分列表
   const { data: ratings, mutate: mutateRatings } = useSWR(
     mapId ? `/api/ratings?mapId=${mapId}` : null,
-    fetcher
+    ratingsFetcher
   )
   
   const map = mapData?.maps?.[0]

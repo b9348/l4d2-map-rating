@@ -88,9 +88,12 @@ export async function GET(request: Request) {
         totalPages: Math.ceil(total / limit)
       }
     })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error fetching maps:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ 
+      error: error.message,
+      stack: error.stack 
+    }, { status: 500 })
   }
 }
 
@@ -125,11 +128,17 @@ export async function POST(request: Request) {
     })
     
     return NextResponse.json({
-      ...map,
-      images: JSON.parse(map.images as string)
+      message: '地图提交成功',
+      map: {
+        ...map,
+        images: JSON.parse(map.images as string)
+      }
     }, { status: 201 })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error creating map:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return NextResponse.json({ 
+      error: error.message,
+      stack: error.stack 
+    }, { status: 500 })
   }
 }

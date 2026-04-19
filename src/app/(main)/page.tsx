@@ -8,8 +8,19 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import Link from 'next/link'
 import { ArrowRight, Star, Users, MapIcon } from 'lucide-react'
+import { api } from '@/lib/http'
 
-const fetcher = (url: string) => fetch(url).then(res => res.json())
+interface MapData {
+  maps: any[]
+  pagination: {
+    page: number
+    limit: number
+    total: number
+    totalPages: number
+  }
+}
+
+const fetcher = (url: string) => api.get<MapData>(url)
 
 export default function HomePage() {
   const [params, setParams] = useState({ page: 1, search: '', sortBy: 'newest' })
