@@ -24,7 +24,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
+  html {
     --color-background: hsl(240 10% 3.9%);
     --color-foreground: hsl(0 0% 98%);
     --color-card: hsl(240 10% 3.9%);
