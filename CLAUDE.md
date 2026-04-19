@@ -25,19 +25,22 @@ pnpm exec drizzle-kit push # 同步 schema 到 MySQL (无 test 脚本)
 - Schema 单一来源:`src/lib/schema.ts`(含 User / Map / Rating 及 NextAuth 所需的 Account / Session / VerificationToken 表)
 - 连接池:`src/lib/db.ts`,`drizzle(..., { mode: 'default' })`
 - **根目录暂无 `drizzle.config.ts`**。运行 `drizzle-kit push` 前需补齐配置,或通过 CLI 参数传入。
-- `@auth/drizzle-adapter` 负责把 NextAuth 会话持久化到上述表。
+- `@auth/drizzle-adapter` 负责把 NextAuth 会话持久化到上述表。要求 `User` 表 JS key 必须是 `id/name/email/emailVerified/image`;当前 schema 把 `image` 的 SQL 列名故意映射成 `avatar` 以兼容历史数据,改动时别把 JS key 改回 `avatar`。
 - `maps.images` 是 **JSON 字符串列**,读写都要手动 `JSON.parse` / `JSON.stringify`(参考 `src/app/api/maps/route.ts`)。
 
-## 认证 — Steam OpenID 2.0 的适配 hack
+## 认证 — Steam OpenID 2.0 + NextAuth 数据库会话
 
-`src/lib/auth.ts` 同时启用 GitHub OAuth 和自定义 Steam provider。Steam 本质是 **OpenID 2.0**,非 OIDC,因此用了一组变通:
+NextAuth v5 原生不支持 OpenID 2.0,采用分工方案:
 
-- `type: "oidc"` 外壳 + 占位 `clientId/clientSecret: "0"` 满足 NextAuth 校验
-- `checks: []` 关闭 state 校验(否则 Steam 回调失败)
-- `openid.realm` / `return_to` 依赖 `NEXTAUTH_URL`,默认落回 `https://l4d.gta4.bio`
-- `profile(profile)` 从 `steamid / personaname / avatarfull` 映射
+- **出站重定向**走 NextAuth:`src/lib/auth.ts` 里 `SteamProvider` 是个极简 `type: "oauth"` 壳,只定义 `authorization.url` / `params`,供 `signIn('steam')` 构造跳转到 `steamcommunity.com/openid/login`。`token` / `userinfo` / `profile` 不存在(NextAuth 不会走到)。
+- **入站回调**完全自定义:`src/app/api/auth/callback/steam/route.ts` 接管 Steam 回来的 `GET`,做三件事:
+  1. 向 `steamcommunity.com/openid/login` 回传 `openid.mode=check_authentication` **验签**,找 `is_valid:true`。**这一步不能省**,否则任何人都能伪造 `claimed_id` 冒充任意 Steam 账号(历史漏洞)。
+  2. 另校验 `openid.op_endpoint` 是否为官方 Steam 端点,防止 op_endpoint 指向攻击者自建服务。
+  3. upsert 到 `users` / `accounts`,然后插 `sessions` 行,把 `sessionToken` 写入 `authjs.session-token` cookie。
+- **Session 策略统一为 database**:`auth.ts` 显式 `session: { strategy: "database" }`,并通过 `cookies.sessionToken.name` 锁定 cookie 名,确保 Steam 自定义写入的 token 能被 `auth()` 正确读回。GitHub 走 NextAuth 标准流程,落到同一张 `sessions` 表。
+- `session` 回调接收的是 `{ session, user }`(不是 token),`user` 是完整的 DB 行,`steamId` 就是它上面的自定义字段。
 
-改动 auth 配置时先理解这些约束,别按 OIDC 规范"修正"它们 —— 已经踩过坑(见 commit `f9f5a8b`、`c4c0eec`)。
+改动 auth 配置时记住:GitHub 与 Steam 两条通路最终都必须写出同一个 `authjs.session-token` cookie 且指向 `sessions` 表主键,否则其中一边的 session 会读不出来。
 
 ## 前端约定
 

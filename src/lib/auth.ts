@@ -6,7 +6,7 @@ import { db } from "./db"
 // Steam 是 OpenID 2.0,不是 OIDC。NextAuth 本身不支持,
 // 所以这里只把 Steam 注册为一个"看起来像 OAuth 的入口",
 // 实际回调由 /api/auth/callback/steam/route.ts 接管。
-// token/userinfo 两端 NextAuth 永远不会触达,所以省掉占位实现。
+// token 端点占位只是为了通过 NextAuth 启动期 InvalidEndpoints 校验,运行时永远不会被调用。
 const SteamProvider = {
   id: "steam",
   name: "Steam",
@@ -23,6 +23,12 @@ const SteamProvider = {
         "openid.realm": baseUrl,
         "openid.return_to": `${baseUrl}/api/auth/callback/steam`,
       }
+    },
+  },
+  token: {
+    url: "https://steamcommunity.com/openid/login",
+    async request() {
+      return { tokens: {} }
     },
   },
 }
