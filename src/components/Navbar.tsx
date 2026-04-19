@@ -71,11 +71,13 @@ export function Navbar() {
                     </DropdownMenu>
                   </>
                 ) : (
-                  /* 登录按钮 */
-                  <Button onClick={() => signIn('github')} size="sm" className="gap-2">
-                    <LogIn className="h-4 w-4" />
-                    GitHub 登录
-                  </Button>
+                  /* 登录按钮 - 跳转到登录页选择方式 */
+                  <Link href="/auth/signin">
+                    <Button size="sm" className="gap-2">
+                      <LogIn className="h-4 w-4" />
+                      登录
+                    </Button>
+                  </Link>
                 )}
               </>
             )}
