@@ -74,7 +74,7 @@ export async function GET(request: Request) {
     ])
     
     // 解析images JSON字符串
-    const mapsWithParsedImages = maps.map(map => ({
+    const mapsWithParsedImages = maps.map((map: any) => ({
       ...map,
       images: JSON.parse(map.images as string)
     }))
