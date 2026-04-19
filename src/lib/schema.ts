@@ -1,10 +1,14 @@
 import { mysqlTable, varchar, text, int, float, datetime, index } from 'drizzle-orm/mysql-core';
 
+// 字段 JS key 必须与 NextAuth DrizzleAdapter 期望一致:id/name/email/emailVerified/image
+// 其中 `image` 底层 SQL 列名保留为 `avatar`,避免历史数据迁移
 export const users = mysqlTable('User', {
   id: varchar('id', { length: 191 }).primaryKey(),
-  steamId: varchar('steamId', { length: 191 }).unique().notNull(),
+  steamId: varchar('steamId', { length: 191 }).unique(),
   name: varchar('name', { length: 191 }),
-  avatar: varchar('avatar', { length: 255 }),
+  email: varchar('email', { length: 191 }).unique(),
+  emailVerified: datetime('emailVerified'),
+  image: varchar('avatar', { length: 255 }),
   createdAt: datetime('createdAt').default(new Date()).notNull(),
   updatedAt: datetime('updatedAt').default(new Date()).$onUpdateFn(() => new Date()).notNull(),
 }, (table) => ({

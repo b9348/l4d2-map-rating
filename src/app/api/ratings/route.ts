@@ -22,7 +22,7 @@ export async function GET(request: Request) {
       userId: ratings.userId,
       createdAt: ratings.createdAt,
       userName: users.name,
-      userAvatar: users.avatar,
+      userAvatar: users.image,
     })
     .from(ratings)
     .leftJoin(users, eq(ratings.userId, users.id))

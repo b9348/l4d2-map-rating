@@ -23,7 +23,7 @@ export async function GET(request: Request) {
         ratingCount: maps.ratingCount,
         createdAt: maps.createdAt,
         submitterName: users.name,
-        submitterAvatar: users.avatar,
+        submitterAvatar: users.image,
       })
       .from(maps)
       .leftJoin(users, eq(maps.submitterId, users.id))
@@ -72,7 +72,7 @@ export async function GET(request: Request) {
         ratingCount: maps.ratingCount,
         createdAt: maps.createdAt,
         submitterName: users.name,
-        submitterAvatar: users.avatar,
+        submitterAvatar: users.image,
       })
       .from(maps)
       .leftJoin(users, eq(maps.submitterId, users.id))
@@ -144,7 +144,7 @@ export async function POST(request: Request) {
       ratingCount: maps.ratingCount,
       createdAt: maps.createdAt,
       submitterName: users.name,
-      submitterAvatar: users.avatar,
+      submitterAvatar: users.image,
     })
     .from(maps)
     .leftJoin(users, eq(maps.submitterId, users.id))
