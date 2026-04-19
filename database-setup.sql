@@ -7,4 +7,4 @@ USE l4d2_map_rating;
 
 -- 注意: 实际的表结构会通过 Prisma 自动创建
 -- 运行以下命令来同步数据库架构:
--- pnpm exec prisma db push
+-- pnpm exec drizzle-kit push

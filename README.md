@@ -18,7 +18,7 @@
 - **认证**: NextAuth.js v5 + Steam OpenID
 - **UI**: shadcn/ui + Tailwind CSS + Framer Motion
 - **数据库**: MySQL 8 (SQLPub)
-- **ORM**: Prisma 7
+- **ORM**: Drizzle ORM
 - **状态管理**: SWR
 - **表单**: React Hook Form + Zod
 - **部署**: 腾讯云 EdgeOne Pages
@@ -65,11 +65,8 @@ IMAGE_HOST_RECOMMENDATION_URL=https://sm.ms/
 4. **初始化数据库**
 
 ```bash
-# 生成 Prisma Client
-pnpm exec prisma generate
-
-# 推送数据库架构(首次运行)
-pnpm exec prisma db push
+# 同步数据库架构(首次运行)
+pnpm exec drizzle-kit push
 ```
 
 5. **启动开发服务器**
@@ -126,8 +123,6 @@ pnpm build
 
 ```
 l4d2-map-rating/
-├── prisma/
-│   └── schema.prisma          # 数据库模型
 ├── src/
 │   ├── app/
 │   │   ├── api/               # API 路由
@@ -149,7 +144,8 @@ l4d2-map-rating/
 │   │   ├── ImageGallery.tsx   # 图片画廊
 │   │   └── SearchFilter.tsx   # 搜索过滤
 │   ├── lib/
-│   │   ├── prisma.ts          # Prisma 客户端
+│   │   ├── db.ts              # Drizzle 客户端
+│   │   ├── schema.ts          # 数据库模型定义
 │   │   ├── auth.ts            # NextAuth 配置
 │   │   ├── validations.ts     # Zod schemas
 │   │   └── utils.ts           # 工具函数
