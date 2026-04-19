@@ -20,7 +20,14 @@ interface MapData {
   }
 }
 
+interface StatsData {
+  mapCount: number
+  ratingCount: number
+  userCount: number
+}
+
 const fetcher = (url: string) => api.get<MapData>(url)
+const statsFetcher = (url: string) => api.get<StatsData>(url)
 
 export default function HomePage() {
   const [params, setParams] = useState({ page: 1, search: '', sortBy: 'newest' })
@@ -30,6 +37,9 @@ export default function HomePage() {
     fetcher,
     { revalidateOnFocus: false }
   )
+  
+  // 获取统计数据
+  const { data: stats } = useSWR('/api/stats', statsFetcher)
   
   return (
     <div className="space-y-12">
@@ -60,15 +70,15 @@ export default function HomePage() {
         <div className="flex justify-center gap-8 pt-8 text-sm">
           <div className="flex items-center gap-2">
             <MapIcon className="h-5 w-5 text-primary" />
-            <span>100+ 地图</span>
+            <span>{stats ? `${stats.mapCount} 地图` : '加载中...'}</span>
           </div>
           <div className="flex items-center gap-2">
             <Star className="h-5 w-5 text-yellow-500" />
-            <span>1000+ 评分</span>
+            <span>{stats ? `${stats.ratingCount} 评分` : '加载中...'}</span>
           </div>
           <div className="flex items-center gap-2">
             <Users className="h-5 w-5 text-green-500" />
-            <span>500+ 玩家</span>
+            <span>{stats ? `${stats.userCount} 玩家` : '加载中...'}</span>
           </div>
         </div>
       </section>
