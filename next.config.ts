@@ -18,6 +18,12 @@ const nextConfig: NextConfig = {
   output: 'standalone',
   // 确保 Prisma Client 在 standalone 模式下被正确追踪和打包
   outputFileTracingRoot: undefined,
+  // 显式禁用某些可能导致追踪错误的实验性功能
+  experimental: {
+    serverActions: {
+      allowedOrigins: ['*'],
+    },
+  },
 };
 
 export default nextConfig;
