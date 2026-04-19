@@ -11,6 +11,9 @@ const SteamProvider = {
   name: "Steam",
   type: "oidc" as const,
   issuer: "https://steamcommunity.com/openid",
+  // 提供虚拟 ID 以满足 NextAuth OIDC 校验
+  clientId: "0", 
+  clientSecret: "0",
   authorization: {
     url: "https://steamcommunity.com/openid/login",
     params: {
