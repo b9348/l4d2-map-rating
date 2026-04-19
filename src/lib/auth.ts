@@ -3,14 +3,17 @@ import GitHub from "next-auth/providers/github"
 import { DrizzleAdapter } from "@auth/drizzle-adapter"
 import { db } from "./db"
 
-// Steam 是 OpenID 2.0,不是 OIDC。NextAuth 本身不支持,
-// 所以这里只把 Steam 注册为一个"看起来像 OAuth 的入口",
-// 实际回调由 /api/auth/callback/steam/route.ts 接管。
-// token 端点占位只是为了通过 NextAuth 启动期 InvalidEndpoints 校验,运行时永远不会被调用。
+// Steam 是 OpenID 2.0,不是 OIDC。NextAuth 原生不支持,
+// 用 type: "oidc" 外壳 + issuer + 占位 clientId/clientSecret 骗过启动期的 InvalidEndpoints 校验。
+// 真正的 OpenID 2.0 响应解析在 /api/auth/callback/steam/route.ts,
+// NextAuth 的 OIDC 流程永远不会被触达,所以占位字段运行时无副作用。
 const SteamProvider = {
   id: "steam",
   name: "Steam",
-  type: "oauth" as const,
+  type: "oidc" as const,
+  issuer: "https://steamcommunity.com/openid",
+  clientId: "0",
+  clientSecret: "0",
   authorization: {
     url: "https://steamcommunity.com/openid/login",
     params: () => {
@@ -25,12 +28,8 @@ const SteamProvider = {
       }
     },
   },
-  token: {
-    url: "https://steamcommunity.com/openid/login",
-    async request() {
-      return { tokens: {} }
-    },
-  },
+  // Steam 回调不带 state,必须关掉 NextAuth 默认的 state/PKCE 校验
+  checks: [],
 }
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
