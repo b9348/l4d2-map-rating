@@ -1,0 +1,61 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  steamId       String    @unique
+  name          String?
+  avatar        String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  submittedMaps Map[]
+  ratings       Rating[]
+  
+  @@index([steamId])
+}
+
+model Map {
+  id          String   @id @default(cuid())
+  nameZh      String?
+  nameEn      String?
+  description String?  @db.Text
+  images      String   @db.Text  // JSON数组存储9张图片URL
+  submitterId String
+  
+  averageRating Float   @default(0)
+  ratingCount   Int     @default(0)
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  submitter User    @relation(fields: [submitterId], references: [id], onDelete: Cascade)
+  ratings   Rating[]
+  
+  @@index([submitterId])
+  @@index([createdAt(sort: Desc)])
+  @@index([averageRating(sort: Desc)])
+}
+
+model Rating {
+  id        String   @id @default(cuid())
+  score     Int      // 0-5
+  comment   String?  @db.Text
+  mapId     String
+  userId    String?  // 未登录用户为null
+  
+  createdAt DateTime @default(now())
+  
+  map  Map    @relation(fields: [mapId], references: [id], onDelete: Cascade)
+  user User?   @relation(fields: [userId], references: [id], onDelete: SetNull)
+  
+  @@unique([mapId, userId]) // 每个用户对每张地图只能评分一次
+  @@index([mapId])
+  @@index([userId])
+}
