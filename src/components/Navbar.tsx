@@ -72,9 +72,9 @@ export function Navbar() {
                   </>
                 ) : (
                   /* 登录按钮 */
-                  <Button onClick={() => signIn('steam')} size="sm" className="gap-2">
+                  <Button onClick={() => signIn('github')} size="sm" className="gap-2">
                     <LogIn className="h-4 w-4" />
-                    Steam 登录
+                    GitHub 登录
                   </Button>
                 )}
               </>
