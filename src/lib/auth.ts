@@ -32,6 +32,7 @@ const SteamProvider = {
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   adapter: DrizzleAdapter(db),
+  trustHost: true,
   providers: [
     SteamProvider as any,
   ],
