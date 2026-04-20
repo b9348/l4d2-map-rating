@@ -12,7 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { mapSchema, type MapInput } from '@/lib/validations'
 import { toast } from 'sonner'
 import { ExternalLink, Plus, X } from 'lucide-react'
-import { api } from '@/lib/http'
+import { api, safeAsync } from '@/lib/http'
 
 export default function SubmitMapPage() {
   const router = useRouter()
@@ -69,24 +69,28 @@ export default function SubmitMapPage() {
   }
   
   const onSubmit = async (data: MapInput) => {
-    // 过滤空图片URL
     const validImages = images.filter(img => img.trim() !== '')
-    
+
     if (validImages.length === 0) {
       toast.error('请至少添加一张图片')
       return
     }
-    
+
     setIsSubmitting(true)
-    
-    const result = await api.post<{ message: string }>('/api/maps', {
-      ...data,
-      images: validImages,
-    })
-    
-    toast.success(result.message)
-    router.push('/')
+
+    const [error, result] = await safeAsync(
+      api.post<{ message: string }>('/api/maps', {
+        ...data,
+        images: validImages,
+      })
+    )
+
     setIsSubmitting(false)
+
+    if (error) return
+
+    toast.success(result!.message)
+    router.push('/')
   }
   
   return (
