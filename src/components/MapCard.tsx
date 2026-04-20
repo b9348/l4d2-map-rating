@@ -1,7 +1,6 @@
 'use client'
 
 import Link from 'next/link'
-import Image from 'next/image'
 import { Card, CardContent } from '@/components/ui/card'
 import { RatingStars } from './RatingStars'
 import { MapData } from '@/types'
@@ -26,12 +25,11 @@ export function MapCard({ map, className }: MapCardProps) {
         {/* 图片区域 */}
         <div className="relative aspect-video overflow-hidden bg-gray-100 dark:bg-gray-900">
           {firstImage ? (
-            <Image
+            <img
               src={firstImage}
               alt={displayName}
-              fill
-              className="object-cover transition-transform duration-300 group-hover:scale-105"
-              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+              loading="lazy"
             />
           ) : (
             <div className="flex items-center justify-center h-full text-gray-400">

@@ -1,11 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import Image from 'next/image'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { Textarea } from '@/components/ui/textarea'
-import { RatingStars } from './RatingStars'
 import { X } from 'lucide-react'
 
 interface ImageGalleryProps {
@@ -31,6 +28,10 @@ export function ImageGallery({ images, isOpen, onClose, initialIndex = 0 }: Imag
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-5xl w-[95vw] p-0 bg-black/95 border-0">
+        <DialogTitle className="sr-only">
+          图片预览 ({currentIndex + 1} / {images.length})
+        </DialogTitle>
+
         {/* 关闭按钮 */}
         <Button
           variant="ghost"
@@ -43,13 +44,10 @@ export function ImageGallery({ images, isOpen, onClose, initialIndex = 0 }: Imag
         
         {/* 图片显示区 */}
         <div className="relative aspect-video w-full">
-          <Image
+          <img
             src={images[currentIndex]}
             alt={`Image ${currentIndex + 1}`}
-            fill
-            className="object-contain"
-            sizes="95vw"
-            priority
+            className="w-full h-full object-contain"
           />
         </div>
         

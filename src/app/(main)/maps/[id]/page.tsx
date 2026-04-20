@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { useParams } from 'next/navigation'
 import useSWR from 'swr'
-import Image from 'next/image'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -96,12 +95,11 @@ export default function MapDetailPage() {
               onClick={() => handleImageClick(index)}
               className="relative aspect-video cursor-pointer overflow-hidden rounded-lg hover:opacity-90 transition-opacity"
             >
-              <Image
+              <img
                 src={img}
                 alt={`${displayName} - ${index + 1}`}
-                fill
-                className="object-cover"
-                sizes="(max-width: 768px) 50vw, 33vw"
+                className="w-full h-full object-cover"
+                loading="lazy"
               />
             </div>
           ))}
@@ -177,11 +175,19 @@ export default function MapDetailPage() {
                   <div className="flex items-center gap-3">
                     {rating.user && (
                       <>
-                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                          <span className="text-sm font-medium">
-                            {rating.user.name?.charAt(0) || 'U'}
-                          </span>
-                        </div>
+                        {rating.user.avatar ? (
+                          <img
+                            src={rating.user.avatar}
+                            alt={rating.user.name || '用户头像'}
+                            className="w-10 h-10 rounded-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                            <span className="text-sm font-medium">
+                              {rating.user.name?.charAt(0) || 'U'}
+                            </span>
+                          </div>
+                        )}
                         <div>
                           <p className="font-medium">{rating.user.name}</p>
                           <p className="text-xs text-muted-foreground">

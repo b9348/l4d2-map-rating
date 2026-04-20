@@ -4,7 +4,6 @@ export const mapSchema = z.object({
   nameZh: z.string().max(100).optional().or(z.literal('')),
   nameEn: z.string().max(100).optional().or(z.literal('')),
   description: z.string().max(2000).optional().or(z.literal('')),
-  images: z.array(z.string().url()).min(1).max(9),
 }).refine(data => {
   // 至少需要一个名称
   if ((!data.nameZh || data.nameZh.trim() === '') && (!data.nameEn || data.nameEn.trim() === '')) {

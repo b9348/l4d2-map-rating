@@ -43,7 +43,6 @@ export async function http<T>(url: string, options: RequestOptions = {}): Promis
     const data = await response.json()
 
     if (!response.ok) {
-      console.error(`HTTP Error ${response.status}:`, data)
       const error = new HttpError(
         response.status,
         data.error || data.message,
