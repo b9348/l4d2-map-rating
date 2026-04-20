@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
 
   const { token, redirectUrl } = await handleSteamCallback(searchParams)
   
-  const response = NextResponse.redirect(new URL(redirectUrl, request.url))
+  const response = NextResponse.redirect(redirectUrl)
   await setAuthCookie(token)
   
   return response

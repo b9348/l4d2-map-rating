@@ -5,9 +5,14 @@ import { generateToken } from './auth-custom'
 import { nanoid } from 'nanoid'
 
 const STEAM_API_KEY = process.env.STEAM_API_KEY
+const PROD_URL = process.env.PROD_URL
 
 if (!STEAM_API_KEY) {
   throw new Error('Steam API Key 未配置')
+}
+
+if (!PROD_URL) {
+  throw new Error('PROD_URL 环境变量未配置')
 }
 
 interface SteamUser {
@@ -176,6 +181,6 @@ export async function handleSteamCallback(query: URLSearchParams): Promise<{ tok
 
   return {
     token,
-    redirectUrl: '/',
+    redirectUrl: `${PROD_URL}/`,
   }
 }

@@ -6,9 +6,14 @@ import { nanoid } from 'nanoid'
 
 const GITHUB_CLIENT_ID = process.env.GITHUB_CLIENT_ID
 const GITHUB_CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET
+const PROD_URL = process.env.PROD_URL
 
 if (!GITHUB_CLIENT_ID || !GITHUB_CLIENT_SECRET) {
   throw new Error('GitHub OAuth 凭据未配置')
+}
+
+if (!PROD_URL) {
+  throw new Error('PROD_URL 环境变量未配置')
 }
 
 interface GitHubUser {
@@ -147,6 +152,6 @@ export async function handleGitHubCallback(code: string): Promise<{ token: strin
 
   return {
     token,
-    redirectUrl: '/',
+    redirectUrl: `${PROD_URL}/`,
   }
 }

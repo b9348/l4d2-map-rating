@@ -8,16 +8,16 @@ export async function GET(request: NextRequest) {
   const error = searchParams.get('error')
 
   if (error) {
-    return NextResponse.redirect(new URL('/auth/signin?error=' + error, request.url))
+    return NextResponse.redirect(`${process.env.PROD_URL}/auth/signin?error=${error}`)
   }
 
   if (!code) {
-    return NextResponse.redirect(new URL('/auth/signin?error=缺少授权码', request.url))
+    return NextResponse.redirect(`${process.env.PROD_URL}/auth/signin?error=缺少授权码`)
   }
 
   const { token, redirectUrl } = await handleGitHubCallback(code)
   
-  const response = NextResponse.redirect(new URL(redirectUrl, request.url))
+  const response = NextResponse.redirect(redirectUrl)
   await setAuthCookie(token)
   
   return response

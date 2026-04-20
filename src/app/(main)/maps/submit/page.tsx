@@ -65,10 +65,7 @@ export default function SubmitMapPage() {
   }
   
   const openImageHost = () => {
-    const url = process.env.NEXT_PUBLIC_IMAGE_HOST_URL
-    if (url) {
-      window.open(url, '_blank')
-    }
+    window.open('https://www.boltp.com/', '_blank')
   }
   
   const onSubmit = async (data: MapInput) => {
