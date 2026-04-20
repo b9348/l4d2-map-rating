@@ -38,10 +38,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [fetchSession])
 
   const signIn = useCallback((provider: 'github' | 'steam') => {
+    // 获取当前浏览器访问的域名
+    const currentOrigin = window.location.origin
     if (provider === 'github') {
-      window.location.href = '/api/auth/signin/github'
+      window.location.href = `/api/auth/signin/github?origin=${encodeURIComponent(currentOrigin)}`
     } else if (provider === 'steam') {
-      window.location.href = '/api/auth/signin/steam'
+      window.location.href = `/api/auth/signin/steam?origin=${encodeURIComponent(currentOrigin)}`
     }
   }, [])
 
