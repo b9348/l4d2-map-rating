@@ -19,6 +19,7 @@ export const ratingSchema = z.object({
   mapId: z.string(),
   score: z.number().int().min(0).max(5),
   comment: z.string().max(500).optional().or(z.literal('')),
+  guestId: z.string().optional(),
 })
 
 export type MapInput = z.infer<typeof mapSchema>

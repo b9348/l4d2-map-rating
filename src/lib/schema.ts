@@ -60,14 +60,24 @@ export const maps = mysqlTable('Map', {
   ratingIdx: index('Map_averageRating_idx').on(table.averageRating),
 }));
 
+export const guestIds = mysqlTable('GuestId', {
+  id: varchar('id', { length: 191 }).primaryKey(),
+  createdAt: datetime('createdAt', { fsp: 3 }).default(sql`CURRENT_TIMESTAMP(3)`).notNull(),
+}, (table) => ({
+  createdAtIdx: index('GuestId_createdAt_idx').on(table.createdAt),
+}));
+
 export const ratings = mysqlTable('Rating', {
   id: varchar('id', { length: 191 }).primaryKey(),
   score: int('score').notNull(),
   comment: text('comment'),
   mapId: varchar('mapId', { length: 191 }).notNull(),
   userId: varchar('userId', { length: 191 }),
+  guestId: varchar('guestId', { length: 191 }),
   createdAt: datetime('createdAt', { fsp: 3 }).default(sql`CURRENT_TIMESTAMP(3)`).notNull(),
+  updatedAt: datetime('updatedAt', { fsp: 3 }).default(sql`CURRENT_TIMESTAMP(3)`).$onUpdateFn(() => new Date()).notNull(),
 }, (table) => ({
   mapIdx: index('Rating_mapId_idx').on(table.mapId),
   userIdx: index('Rating_userId_idx').on(table.userId),
+  guestIdx: index('Rating_guestId_idx').on(table.guestId),
 }));

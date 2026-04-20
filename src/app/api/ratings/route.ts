@@ -3,7 +3,7 @@ import { db } from '@/lib/db'
 import { ratings, maps, users } from '@/lib/schema'
 import { getSession } from '@/lib/auth-custom'
 import { ratingSchema } from '@/lib/validations'
-import { eq, and, desc, avg, count } from 'drizzle-orm'
+import { eq, and, desc, avg, count, isNull } from 'drizzle-orm'
 import { withCache, deleteCache } from '@/lib/cache'
 
 // GET - 获取某地图的评分
@@ -24,7 +24,9 @@ export async function GET(request: Request) {
           score: ratings.score,
           comment: ratings.comment,
           userId: ratings.userId,
+          guestId: ratings.guestId,
           createdAt: ratings.createdAt,
+          updatedAt: ratings.updatedAt,
           userName: users.name,
           userAvatar: users.image,
         })
@@ -51,7 +53,7 @@ export async function GET(request: Request) {
   }
 }
 
-// POST - 提交评分
+// POST - 提交/更新评分
 export async function POST(request: Request) {
   const session = await getSession()
   const body = await request.json()
@@ -61,16 +63,37 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: validated.error.issues }, { status: 400 })
   }
 
-  let userId = session?.user?.id || null
+  const userId = session?.user?.id || null
+  const guestId = userId ? null : (validated.data.guestId || null)
 
-  // 检查是否已评分
-  const [existing] = await db.select()
-    .from(ratings)
-    .where(and(
-      eq(ratings.mapId, validated.data.mapId),
-      userId ? eq(ratings.userId, userId) : undefined
-    ))
-    .limit(1)
+  if (!userId && !guestId) {
+    return NextResponse.json({ error: '未登录用户需要提供 guestId' }, { status: 400 })
+  }
+
+  // 检查是否已评分（根据 userId 或 guestId）
+  let existing = null
+
+  if (userId) {
+    // 已登录用户：通过 userId 查找
+    const [found] = await db.select()
+      .from(ratings)
+      .where(and(
+        eq(ratings.mapId, validated.data.mapId),
+        eq(ratings.userId, userId)
+      ))
+      .limit(1)
+    existing = found
+  } else if (guestId) {
+    // 未登录用户：通过 guestId 查找
+    const [found] = await db.select()
+      .from(ratings)
+      .where(and(
+        eq(ratings.mapId, validated.data.mapId),
+        eq(ratings.guestId, guestId)
+      ))
+      .limit(1)
+    existing = found
+  }
 
   if (existing) {
     // 更新评分
@@ -87,7 +110,8 @@ export async function POST(request: Request) {
       score: validated.data.score,
       comment: validated.data.comment || null,
       mapId: validated.data.mapId,
-      userId
+      userId,
+      guestId
     })
   }
 
@@ -113,6 +137,6 @@ export async function POST(request: Request) {
   await deleteCache('maps:list:home')
 
   return NextResponse.json({
-    message: '评分提交成功'
+    message: existing ? '评分更新成功' : '评分提交成功'
   })
 }

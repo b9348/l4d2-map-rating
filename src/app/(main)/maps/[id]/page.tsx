@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useParams } from 'next/navigation'
 import useSWR from 'swr'
 import { Button } from '@/components/ui/button'
@@ -11,8 +11,10 @@ import { RatingStars } from '@/components/RatingStars'
 import { RatingModal } from '@/components/RatingModal'
 import { ImageGallery } from '@/components/ImageGallery'
 import { ImageCarousel } from '@/components/ImageCarousel'
-import { Star, Calendar, User } from 'lucide-react'
+import { Star, Calendar, User, Edit2 } from 'lucide-react'
 import { api } from '@/lib/http'
+import { useAuth } from '@/lib/auth-context'
+import { getGuestId } from '@/lib/guest-id'
 
 interface MapDetailResponse {
   maps: Array<{
@@ -38,7 +40,9 @@ interface Rating {
   score: number
   comment: string | null
   userId: string | null
+  guestId: string | null
   createdAt: string
+  updatedAt: string
   user?: {
     name: string | null
     avatar: string | null
@@ -50,22 +54,37 @@ const ratingsFetcher = (url: string) => api.get<Rating[]>(url)
 export default function MapDetailPage() {
   const params = useParams()
   const mapId = params.id as string
+  const { session } = useAuth()
 
   const [isRatingModalOpen, setIsRatingModalOpen] = useState(false)
   const [isImageGalleryOpen, setIsImageGalleryOpen] = useState(false)
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
+  const [isEditMode, setIsEditMode] = useState(false)
 
-  // 获取地图详情
-  const { data: mapData, isLoading: mapLoading } = useSWR(
+  const { data: mapData, isLoading: mapLoading, mutate: mutateMap } = useSWR(
     mapId ? `/api/maps?id=${mapId}` : null,
     fetcher
   )
 
-  // 获取评分列表
   const { data: ratings, mutate: mutateRatings } = useSWR(
     mapId ? `/api/ratings?mapId=${mapId}` : null,
     ratingsFetcher
   )
+
+  const userRating = useMemo(() => {
+    if (!ratings?.length) return null
+
+    if (session?.user?.id) {
+      return ratings.find(r => r.userId === session.user.id) || null
+    }
+
+    const guestId = getGuestId()
+    if (guestId) {
+      return ratings.find(r => r.guestId === guestId) || null
+    }
+
+    return null
+  }, [ratings, session])
 
   const map = mapData?.maps?.[0]
 
@@ -86,6 +105,16 @@ export default function MapDetailPage() {
   }
 
   const reviewRatings = ratings?.filter((r: any) => r.comment && r.comment.trim().length > 0) || []
+
+  const handleOpenRatingModal = (edit = false) => {
+    setIsEditMode(edit)
+    setIsRatingModalOpen(true)
+  }
+
+  const handleRatingSuccess = () => {
+    mutateRatings()
+    mutateMap()
+  }
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
@@ -122,6 +151,28 @@ export default function MapDetailPage() {
                   {map.ratingCount} 条评价
                 </Badge>
               </div>
+
+              {/* 用户已评分提示 */}
+              {userRating && (
+                <div className="bg-primary/5 border border-primary/20 rounded-lg p-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-muted-foreground">我的评分:</span>
+                      <RatingStars rating={userRating.score} size="sm" />
+                      <span className="font-medium">{userRating.score} 星</span>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleOpenRatingModal(true)}
+                      className="h-8 gap-1"
+                    >
+                      <Edit2 className="h-3.5 w-3.5" />
+                      修改
+                    </Button>
+                  </div>
+                </div>
+              )}
 
               <Separator />
 
@@ -163,12 +214,12 @@ export default function MapDetailPage() {
 
               {/* 评分按钮 */}
               <Button
-                onClick={() => setIsRatingModalOpen(true)}
+                onClick={() => handleOpenRatingModal(false)}
                 size="lg"
                 className="w-full gap-2 mt-2"
               >
                 <Star className="h-5 w-5" />
-                评分
+                {userRating ? '重新评分' : '评分'}
               </Button>
             </CardContent>
           </Card>
@@ -224,9 +275,10 @@ export default function MapDetailPage() {
         mapId={mapId}
         isOpen={isRatingModalOpen}
         onClose={() => setIsRatingModalOpen(false)}
-        onSuccess={() => {
-          mutateRatings()
-        }}
+        onSuccess={handleRatingSuccess}
+        initialScore={isEditMode && userRating ? userRating.score : 0}
+        initialComment={isEditMode && userRating ? (userRating.comment || '') : ''}
+        isEdit={isEditMode}
       />
 
       {/* 图片画廊弹窗 */}
