@@ -20,7 +20,7 @@ export function MapCard({ map, className }: MapCardProps) {
     <Link href={`/maps/${map.id}`} prefetch={true}>
       <Card className={cn(
         'group overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1',
-        'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700',
+        'bg-white dark:bg-gray-800 border-gray-200/70 dark:border-gray-700/50',
         className
       )}>
         {/* 图片区域 */}
@@ -62,7 +62,7 @@ export function MapCard({ map, className }: MapCardProps) {
           
           {/* 上传者信息 */}
           {map.submitter && (
-            <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+            <div className="mt-3 pt-3 border-t border-gray-200/50 dark:border-gray-700/50">
               <p className="text-xs text-gray-500 dark:text-gray-400">
                 by {map.submitter.name || '匿名用户'}
               </p>

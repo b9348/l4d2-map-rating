@@ -172,7 +172,7 @@ export default function MapDetailPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             {ratings.map((rating: any) => (
-              <div key={rating.id} className="border-b pb-4 last:border-0">
+              <div key={rating.id} className="border-b border-border/50 pb-4 last:border-0">
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex items-center gap-3">
                     {rating.user && (
