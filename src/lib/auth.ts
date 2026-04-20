@@ -14,6 +14,8 @@ const SteamProvider = {
   version: "2.0",
   clientId: "0",
   clientSecret: "0",
+  // NextAuth v5 要求 issuer 或 token 至少有一个
+  issuer: "https://steamcommunity.com",
   authorization: {
     url: "https://steamcommunity.com/openid/login",
     params: () => {
