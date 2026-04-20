@@ -63,4 +63,4 @@ NextAuth v5 原生不支持 OpenID 2.0,采用分工方案:
 
 ## 环境变量
 
-必需:`AUTH_SECRET`(或旧名 `NEXTAUTH_SECRET`)、`NEXTAUTH_URL`、`DATABASE_URL`、`AUTH_GITHUB_ID`、`AUTH_GITHUB_SECRET`。Steam 不需要 OAuth secret,但 `AUTH_STEAM_ID`(Steam Web API key)用于后续扩展。`.env.local` 已被 `.gitignore`。
+必需:`AUTH_SECRET`(或旧名 `NEXTAUTH_SECRET`)、`NEXTAUTH_URL`、`DATABASE_URL`、`AUTH_GITHUB_ID`、`AUTH_GITHUB_SECRET`、`AUTH_STEAM_ID`(Steam Web API key,用于获取用户头像和昵称)。`.env.local` 已被 `.gitignore`。

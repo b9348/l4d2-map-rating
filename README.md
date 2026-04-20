@@ -53,7 +53,7 @@ NEXTAUTH_URL=http://localhost:3000
 NEXTAUTH_SECRET=your-secret-key-here
 
 # Steam API - 从 https://steamcommunity.com/dev/apikey 获取
-STEAM_API_KEY=your-steam-api-key
+AUTH_STEAM_ID=your-steam-api-key
 
 # Database (SQLPub MySQL)
 DATABASE_URL="mysql://user:password@host:port/database"
@@ -101,7 +101,7 @@ pnpm dev
 ### 认证 API
 
 - `/api/auth/signin` - 登录页面
-- `/api/auth/steam-callback` - Steam OAuth 回调
+- `/api/auth/callback/steam` - Steam OAuth 回调 (由 next-auth-steam 自动处理)
 
 ## 部署到 EdgeOne
 
@@ -113,7 +113,7 @@ pnpm build
 2. **配置 EdgeOne**
    - 在腾讯云控制台创建 EdgeOne Pages 项目
    - 连接 Git 仓库或直接上传构建产物
-   - 配置环境变量(NEXTAUTH_SECRET, DATABASE_URL, STEAM_API_KEY等)
+   - 配置环境变量(NEXTAUTH_SECRET, DATABASE_URL, AUTH_STEAM_ID等)
 
 3. **设置域名和SSL**
    - 绑定自定义域名(可选)
@@ -162,7 +162,7 @@ l4d2-map-rating/
 1. 访问 https://steamcommunity.com/dev/apikey
 2. 登录 Steam 账号
 3. 输入域名(本地开发用 localhost)
-4. 复制生成的密钥到 `STEAM_API_KEY`
+4. 复制生成的密钥到 `AUTH_STEAM_ID`
 
 ### 数据库配置
 
