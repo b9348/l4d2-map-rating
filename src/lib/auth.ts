@@ -5,7 +5,7 @@ import { db } from "./db"
 
 // Steam 是 OpenID 2.0,不是 OIDC。NextAuth 原生不支持,
 // 用 type: "oidc" 外壳 + issuer + 占位 clientId/clientSecret 骗过启动期的 InvalidEndpoints 校验。
-// 真正的 OpenID 2.0 响应解析在 /api/auth/callback/steam/route.ts,
+// 真正的 OpenID 2.0 响应解析在 /api/auth/steam-callback/route.ts,
 // NextAuth 的 OIDC 流程永远不会被触达,所以占位字段运行时无副作用。
 const SteamProvider = {
   id: "steam",
@@ -24,7 +24,8 @@ const SteamProvider = {
         "openid.mode": "checkid_setup",
         "openid.ns": "http://specs.openid.net/auth/2.0",
         "openid.realm": baseUrl,
-        "openid.return_to": `${baseUrl}/api/auth/callback/steam`,
+        // 使用不同的回调路径,避免与 NextAuth 默认路由冲突
+        "openid.return_to": `${baseUrl}/api/auth/steam-callback`,
       }
     },
   },

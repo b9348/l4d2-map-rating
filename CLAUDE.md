@@ -33,7 +33,7 @@ pnpm exec drizzle-kit push # 同步 schema 到 MySQL (无 test 脚本)
 NextAuth v5 原生不支持 OpenID 2.0,采用分工方案:
 
 - **出站重定向**走 NextAuth:`src/lib/auth.ts` 里 `SteamProvider` 是个极简 `type: "oauth"` 壳,只定义 `authorization.url` / `params`,供 `signIn('steam')` 构造跳转到 `steamcommunity.com/openid/login`。`token` / `userinfo` / `profile` 不存在(NextAuth 不会走到)。
-- **入站回调**完全自定义:`src/app/api/auth/callback/steam/route.ts` 接管 Steam 回来的 `GET`,做三件事:
+- **入站回调**完全自定义:`src/app/api/auth/steam-callback/route.ts` 接管 Steam 回来的 `GET`,做三件事:
   1. 向 `steamcommunity.com/openid/login` 回传 `openid.mode=check_authentication` **验签**,找 `is_valid:true`。**这一步不能省**,否则任何人都能伪造 `claimed_id` 冒充任意 Steam 账号(历史漏洞)。
   2. 另校验 `openid.op_endpoint` 是否为官方 Steam 端点,防止 op_endpoint 指向攻击者自建服务。
   3. upsert 到 `users` / `accounts`,然后插 `sessions` 行,把 `sessionToken` 写入 `authjs.session-token` cookie。

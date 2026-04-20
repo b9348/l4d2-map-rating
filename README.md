@@ -101,7 +101,7 @@ pnpm dev
 ### 认证 API
 
 - `/api/auth/signin` - 登录页面
-- `/api/auth/callback/steam` - Steam OAuth 回调
+- `/api/auth/steam-callback` - Steam OAuth 回调
 
 ## 部署到 EdgeOne
 
