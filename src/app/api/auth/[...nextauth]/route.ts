@@ -17,7 +17,7 @@ const { handlers } = NextAuth((req: NextRequest | undefined) => {
         clientSecret: process.env.AUTH_GITHUB_SECRET!,
       }),
       ...(req ? [Steam(req, {
-        apiKey: process.env.AUTH_STEAM_ID!,
+        clientSecret: process.env.STEAM_API_KEY!,
       })] : []),
     ],
     callbacks: {
