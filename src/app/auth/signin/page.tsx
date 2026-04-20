@@ -1,18 +1,12 @@
 'use client'
 
-import { signIn } from 'next-auth/react'
+import { useAuth } from '@/lib/auth-context'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Gamepad2 } from 'lucide-react'
 
 export default function SignInPage() {
-  const handleGitHubLogin = () => {
-    signIn('github', { callbackUrl: '/' })
-  }
-
-  const handleSteamLogin = () => {
-    signIn('steam', { callbackUrl: '/' })
-  }
+  const { signIn } = useAuth()
   
   return (
     <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4">
@@ -30,7 +24,7 @@ export default function SignInPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           <Button
-            onClick={handleGitHubLogin}
+            onClick={() => signIn('github')}
             className="w-full h-12 text-lg gap-3 bg-gradient-to-r from-gray-900 to-black hover:from-gray-800 hover:to-gray-900"
           >
             <svg className="h-6 w-6" viewBox="0 0 24 24" fill="currentColor">
@@ -51,7 +45,7 @@ export default function SignInPage() {
           </div>
 
           <Button
-            onClick={handleSteamLogin}
+            onClick={() => signIn('steam')}
             variant="outline"
             className="w-full h-12 text-lg gap-3"
           >

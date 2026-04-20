@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { useSession } from 'next-auth/react'
+import { useAuth } from '@/lib/auth-context'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/components/ui/button'
@@ -16,7 +16,7 @@ import { api } from '@/lib/http'
 
 export default function SubmitMapPage() {
   const router = useRouter()
-  const { data: session, status } = useSession()
+  const { session, loading } = useAuth()
   const [images, setImages] = useState<string[]>([''])
   const [isSubmitting, setIsSubmitting] = useState(false)
   
@@ -33,7 +33,7 @@ export default function SubmitMapPage() {
   const nameEn = watch('nameEn')
   
   // 检查登录状态
-  if (status === 'loading') {
+  if (loading) {
     return <div className="text-center py-12">加载中...</div>
   }
   

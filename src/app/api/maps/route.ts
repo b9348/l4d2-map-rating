@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { maps, users, ratings } from '@/lib/schema'
-import { auth } from '@/lib/auth'
+import { getSession } from '@/lib/auth-custom'
 import { mapSchema } from '@/lib/validations'
 import { eq, or, like, desc, count, sql } from 'drizzle-orm'
 
@@ -110,11 +110,10 @@ export async function GET(request: Request) {
 
 // POST - 创建新地图(需要登录)
 export async function POST(request: Request) {
-  try {
-    const session = await auth()
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
+  const session = await getSession()
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: '请先登录' }, { status: 401 })
+  }
     
     const body = await request.json()
     const validated = mapSchema.safeParse(body)
@@ -158,11 +157,4 @@ export async function POST(request: Request) {
         submitter: { name: map.submitterName, avatar: map.submitterAvatar }
       }
     }, { status: 201 })
-  } catch (error: any) {
-    console.error('Error creating map:', error)
-    return NextResponse.json({ 
-      error: error.message,
-      stack: error.stack 
-    }, { status: 500 })
-  }
 }

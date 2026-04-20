@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { ratings, maps, users } from '@/lib/schema'
-import { auth } from '@/lib/auth'
+import { getSession } from '@/lib/auth-custom'
 import { ratingSchema } from '@/lib/validations'
 import { eq, and, desc, avg, count } from 'drizzle-orm'
 
@@ -46,16 +46,15 @@ export async function GET(request: Request) {
 
 // POST - 提交评分
 export async function POST(request: Request) {
-  try {
-    const session = await auth()
-    const body = await request.json()
-    const validated = ratingSchema.safeParse(body)
-    
-    if (!validated.success) {
-      return NextResponse.json({ error: validated.error.issues }, { status: 400 })
-    }
-    
-    let userId = session?.user?.id || null
+  const session = await getSession()
+  const body = await request.json()
+  const validated = ratingSchema.safeParse(body)
+  
+  if (!validated.success) {
+    return NextResponse.json({ error: validated.error.issues }, { status: 400 })
+  }
+  
+  let userId = session?.user?.id || null
     
     // 检查是否已评分
     const [existing] = await db.select()
@@ -103,11 +102,4 @@ export async function POST(request: Request) {
     return NextResponse.json({ 
       message: '评分提交成功'
     })
-  } catch (error: any) {
-    console.error('Error submitting rating:', error)
-    return NextResponse.json({ 
-      error: error.message,
-      stack: error.stack 
-    }, { status: 500 })
-  }
 }

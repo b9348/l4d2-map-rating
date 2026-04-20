@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useSession, signIn, signOut } from 'next-auth/react'
+import { useAuth } from '@/lib/auth-context'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
@@ -14,8 +14,7 @@ import {
 import { Gamepad2, LogIn, LogOut, Plus } from 'lucide-react'
 
 export function Navbar() {
-  const { data: session, status } = useSession()
-  const isLoading = status === 'loading'
+  const { session, loading, signOut } = useAuth()
   
   return (
     <nav className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -31,7 +30,7 @@ export function Navbar() {
           
           {/* 右侧操作区 */}
           <div className="flex items-center gap-4">
-            {!isLoading && (
+            {!loading && (
               <>
                 {session ? (
                   <>
