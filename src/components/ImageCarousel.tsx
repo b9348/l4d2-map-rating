@@ -59,7 +59,7 @@ export function ImageCarousel({ images, alt, onImageClick }: ImageCarouselProps)
 
   // 鼠标滚轮切换
   const onWheel = (e: React.WheelEvent) => {
-    e.preventDefault()
+    // 不再调用 preventDefault，避免被动事件监听器警告
     if (e.deltaY > 0) goNext()
     else goPrevious()
   }

@@ -1,13 +1,14 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import useSWR from 'swr'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent } from '@/components/ui/card'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Search, ExternalLink, Star, Eye, Users, TrendingUp } from 'lucide-react'
-import { api, safeAsync } from '@/lib/http'
+import { Search, ExternalLink, Star, Eye, Users, TrendingUp, RefreshCw } from 'lucide-react'
+import { api } from '@/lib/http'
 import { toast } from 'sonner'
 
 interface WorkshopItem {
@@ -31,40 +32,37 @@ interface WorkshopItem {
 
 export default function WorkshopPage() {
   const router = useRouter()
-  const [items, setItems] = useState<WorkshopItem[]>([])
-  const [loading, setLoading] = useState(true)
   const [searchText, setSearchText] = useState('')
   const [sort, setSort] = useState<'popular' | 'recent' | 'trend'>('popular')
   const [page, setPage] = useState(1)
-  const [totalPages, setTotalPages] = useState(1)
 
-  useEffect(() => {
-    loadItems()
-  }, [sort, page])
-
-  const loadItems = async () => {
-    setLoading(true)
-    const [error, data] = await safeAsync(
-      api.get<{
-        items: WorkshopItem[]
-        pagination: { page: number; limit: number; total: number; totalPages: number }
-      }>(`/api/workshop/browse?sort=${sort}&page=${page}&search=${searchText}`)
-    )
-
-    if (error || !data) {
-      toast.error('加载失败: ' + (error?.message || '未知错误'))
-      setLoading(false)
-      return
+  // 使用 SWR 获取数据，自动缓存和重新验证
+  const { data, error, isLoading, mutate } = useSWR(
+    `/api/workshop/browse?sort=${sort}&page=${page}&search=${searchText}`,
+    (url: string) => api.get<{
+      items: WorkshopItem[]
+      pagination: { page: number; limit: number; total: number; totalPages: number }
+    }>(url),
+    {
+      // 保持缓存数据，后台静默重新验证
+      revalidateOnFocus: false,
+      revalidateOnReconnect: true,
+      // 5分钟内不重复请求
+      dedupingInterval: 300000,
+      // 错误时重试3次
+      retryCount: 3,
+      onError: (err) => {
+        toast.error('加载失败: ' + (err.message || '未知错误'))
+      }
     }
+  )
 
-    setItems(data.items)
-    setTotalPages(data.pagination.totalPages)
-    setLoading(false)
-  }
+  const items = data?.items || []
+  const totalPages = data?.pagination.totalPages || 1
 
   const handleSearch = () => {
     setPage(1)
-    loadItems()
+    // SWR 会自动根据新的 key 重新获取数据
   }
 
   const handleViewDetails = (id: string) => {
@@ -101,6 +99,15 @@ export default function WorkshopPage() {
             <Search className="h-4 w-4" />
             搜索
           </Button>
+          <Button 
+            variant="outline" 
+            size="icon"
+            onClick={() => mutate()}
+            disabled={isLoading}
+            title="刷新数据"
+          >
+            <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+          </Button>
         </div>
 
         <Tabs value={sort} onValueChange={(v) => setSort(v as any)}>
@@ -120,7 +127,7 @@ export default function WorkshopPage() {
       </div>
 
       {/* 地图列表 */}
-      {loading ? (
+      {isLoading ? (
         <div className="text-center py-12">加载中...</div>
       ) : items.length === 0 ? (
         <div className="text-center py-12 text-muted-foreground">

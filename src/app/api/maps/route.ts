@@ -26,6 +26,9 @@ export async function GET(request: Request) {
             averageRating: maps.averageRating,
             ratingCount: maps.ratingCount,
             createdAt: maps.createdAt,
+            workshopId: maps.workshopId,
+            steamData: maps.steamData,
+            submitterId: maps.submitterId,
             submitterName: users.name,
             submitterAvatar: users.image,
           })
@@ -42,7 +45,8 @@ export async function GET(request: Request) {
             maps: [{
               ...map,
               images: JSON.parse(map.images as string),
-              submitter: { name: map.submitterName, avatar: map.submitterAvatar }
+              submitter: { name: map.submitterName, avatar: map.submitterAvatar },
+              submitterId: map.submitterId,
             }]
           }
         },
@@ -89,6 +93,7 @@ export async function GET(request: Request) {
           averageRating: maps.averageRating,
           ratingCount: maps.ratingCount,
           createdAt: maps.createdAt,
+          submitterId: maps.submitterId,
           submitterName: users.name,
           submitterAvatar: users.image,
         })

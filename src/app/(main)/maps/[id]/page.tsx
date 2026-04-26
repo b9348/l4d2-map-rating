@@ -7,14 +7,19 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Label } from '@/components/ui/label'
 import { RatingStars } from '@/components/RatingStars'
 import { RatingModal } from '@/components/RatingModal'
 import { ImageGallery } from '@/components/ImageGallery'
 import { ImageCarousel } from '@/components/ImageCarousel'
-import { Star, Calendar, User, Edit2 } from 'lucide-react'
+import { WorkshopDescription } from '@/components/WorkshopDescription'
+import { Star, Calendar, User, Edit2, ExternalLink, Gamepad2, Save, X, Languages } from 'lucide-react'
 import { api } from '@/lib/http'
 import { useAuth } from '@/lib/auth-context'
 import { getGuestId } from '@/lib/guest-id'
+import { toast } from 'sonner'
 
 interface MapDetailResponse {
   maps: Array<{
@@ -26,6 +31,9 @@ interface MapDetailResponse {
     averageRating: number
     ratingCount: number
     createdAt: string
+    workshopId: string | null
+    steamData: string | null
+    submitterId: string
     submitter: {
       name: string | null
       avatar: string | null
@@ -60,6 +68,14 @@ export default function MapDetailPage() {
   const [isImageGalleryOpen, setIsImageGalleryOpen] = useState(false)
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
   const [isEditMode, setIsEditMode] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+  
+  // 编辑表单状态
+  const [editForm, setEditForm] = useState({
+    nameZh: '',
+    nameEn: '',
+    description: '',
+  })
 
   const { data: mapData, isLoading: mapLoading, mutate: mutateMap } = useSWR(
     mapId ? `/api/maps?id=${mapId}` : null,
@@ -87,6 +103,44 @@ export default function MapDetailPage() {
   }, [ratings, session])
 
   const map = mapData?.maps?.[0]
+  
+  // 判断当前用户是否为上传者
+  const isOwner = session?.user?.id && map && session.user.id === map.submitterId
+  
+  // 进入编辑模式时初始化表单
+  const handleStartEdit = () => {
+    if (map) {
+      setEditForm({
+        nameZh: map.nameZh || '',
+        nameEn: map.nameEn || '',
+        description: map.description || '',
+      })
+      setIsEditMode(true)
+    }
+  }
+  
+  // 保存编辑
+  const handleSaveEdit = async () => {
+    if (!mapId) return
+    
+    setIsSaving(true)
+    try {
+      await api.put(`/api/maps/${mapId}`, editForm)
+      toast.success('保存成功')
+      setIsEditMode(false)
+      // 刷新数据
+      mutateMap()
+    } catch (error: any) {
+      toast.error(error.message || '保存失败')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+  
+  // 取消编辑
+  const handleCancelEdit = () => {
+    setIsEditMode(false)
+  }
 
   if (mapLoading) {
     return <div className="text-center py-12">加载中...</div>
@@ -133,12 +187,69 @@ export default function MapDetailPage() {
         <div className="lg:col-span-2">
           <Card className="h-full">
             <CardHeader className="pb-4">
-              <div className="space-y-2">
-                <CardTitle className="text-2xl leading-tight">{displayName}</CardTitle>
-                {map.nameZh && map.nameEn && (
-                  <p className="text-muted-foreground text-sm">{map.nameEn}</p>
-                )}
-              </div>
+              {isEditMode ? (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-xl flex items-center gap-2">
+                      <Languages className="h-5 w-5" />
+                      编辑地图信息
+                    </CardTitle>
+                    <div className="flex gap-2">
+                      <Button size="sm" onClick={handleSaveEdit} disabled={isSaving}>
+                        <Save className="h-4 w-4 mr-1" />
+                        {isSaving ? '保存中...' : '保存'}
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={handleCancelEdit} disabled={isSaving}>
+                        <X className="h-4 w-4 mr-1" />
+                        取消
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div>
+                      <Label htmlFor="nameZh">中文名称</Label>
+                      <Input
+                        id="nameZh"
+                        value={editForm.nameZh}
+                        onChange={(e) => setEditForm({ ...editForm, nameZh: e.target.value })}
+                        placeholder="输入中文地图名称"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="nameEn">英文名称</Label>
+                      <Input
+                        id="nameEn"
+                        value={editForm.nameEn}
+                        onChange={(e) => setEditForm({ ...editForm, nameEn: e.target.value })}
+                        placeholder="输入英文地图名称"
+                      />
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <div className="flex items-start justify-between">
+                    <div className="space-y-2 flex-1">
+                      <CardTitle className="text-2xl leading-tight">{displayName}</CardTitle>
+                      {map.nameZh && map.nameEn && (
+                        <p className="text-muted-foreground text-sm">{map.nameEn}</p>
+                      )}
+                    </div>
+                    {isOwner && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleStartEdit}
+                        className="shrink-0"
+                      >
+                        <Edit2 className="h-4 w-4 mr-1" />
+                        编辑
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              )}
             </CardHeader>
             <CardContent className="space-y-5">
               {/* 评分统计 */}
@@ -176,24 +287,48 @@ export default function MapDetailPage() {
 
               <Separator />
 
-              {/* 描述 */}
-              {map.description ? (
+              {/* 来源信息 - 如果从创意工坊导入 */}
+              {map.workshopId ? (
                 <div>
-                  <h3 className="font-semibold mb-2 text-sm">地图描述</h3>
-                  <p className="text-muted-foreground text-sm whitespace-pre-wrap line-clamp-6">
-                    {map.description}
-                  </p>
+                  <h3 className="font-semibold mb-2 text-sm flex items-center gap-2">
+                    <Gamepad2 className="h-4 w-4" />
+                    来源信息
+                  </h3>
+                  <Badge variant="outline" className="mb-3">
+                    来自 Steam 创意工坊
+                  </Badge>
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1 gap-2"
+                      onClick={() => 
+                        window.open(
+                          `https://steamcommunity.com/sharedfiles/filedetails/?id=${map.workshopId}`,
+                          '_blank'
+                        )
+                      }
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                      查看创意工坊页面
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1 gap-2"
+                      onClick={() => 
+                        window.location.href = `/workshop/${map.workshopId}`
+                      }
+                    >
+                      <Gamepad2 className="h-4 w-4" />
+                      在本站浏览
+                    </Button>
+                  </div>
                 </div>
               ) : (
-                <p className="text-muted-foreground text-sm italic">暂无描述</p>
-              )}
-
-              <Separator />
-
-              {/* 元信息 */}
-              <div className="space-y-3 text-sm text-muted-foreground">
-                {map.submitter && (
-                  <div className="flex items-center gap-2">
+                /* 非创意工坊导入时显示上传者 */
+                map.submitter && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     {map.submitter.avatar ? (
                       <img
                         src={map.submitter.avatar}
@@ -205,7 +340,13 @@ export default function MapDetailPage() {
                     )}
                     <span>上传者: {map.submitter.name || '匿名用户'}</span>
                   </div>
-                )}
+                )
+              )}
+
+              <Separator />
+
+              {/* 元信息 */}
+              <div className="text-sm text-muted-foreground">
                 <div className="flex items-center gap-2">
                   <Calendar className="h-4 w-4" />
                   <span>发布于: {new Date(map.createdAt).toLocaleDateString('zh-CN')}</span>
@@ -225,6 +366,35 @@ export default function MapDetailPage() {
           </Card>
         </div>
       </div>
+
+      {/* 描述卡片 - 独立显示 */}
+      {(map.description || isEditMode) && (
+        <Card>
+          <CardHeader>
+            <CardTitle>地图描述</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {isEditMode ? (
+              <div className="space-y-2">
+                <Label htmlFor="description">描述内容 (支持 BBCode)</Label>
+                <Textarea
+                  id="description"
+                  value={editForm.description}
+                  onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                  placeholder="输入地图描述，支持 BBCode 格式"
+                  rows={15}
+                  className="font-mono text-sm"
+                />
+                <p className="text-xs text-muted-foreground">
+                  支持格式: [b]加粗[/b], [i]斜体[/i], [url]链接[/url], [img]图片[/img], [h1]标题[/h1] 等
+                </p>
+              </div>
+            ) : (
+              <WorkshopDescription description={map.description || ''} />
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* 评价列表 - 只显示有评论的评价 */}
       {reviewRatings.length > 0 && (

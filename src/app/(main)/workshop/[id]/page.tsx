@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, use, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -9,6 +9,26 @@ import { ExternalLink, Star, Eye, Users, Heart, Download, ArrowLeft } from 'luci
 import { api, safeAsync } from '@/lib/http'
 import { toast } from 'sonner'
 import { useAuth } from '@/lib/auth-context'
+import { ImageCarousel } from '@/components/ImageCarousel'
+import { ImageGallery } from '@/components/ImageGallery'
+import { WorkshopDescription } from '@/components/WorkshopDescription'
+
+/**
+ * 从 BBCode 描述中提取所有图片 URL
+ */
+function extractImagesFromDescription(description: string): string[] {
+  if (!description) return []
+  
+  const images: string[] = []
+  const imgRegex = /\[img\]([\s\S]*?)\[\/img\]/g
+  let match
+  
+  while ((match = imgRegex.exec(description)) !== null) {
+    images.push(match[1].trim())
+  }
+  
+  return images
+}
 
 interface WorkshopItemDetail {
   id: string
@@ -32,21 +52,37 @@ interface WorkshopItemDetail {
   } | null
 }
 
-export default function WorkshopDetailPage({ params }: { params: { id: string } }) {
+export default function WorkshopDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const unwrappedParams = use(params)
   const router = useRouter()
   const { session } = useAuth()
   const [item, setItem] = useState<WorkshopItemDetail | null>(null)
   const [loading, setLoading] = useState(true)
   const [importing, setImporting] = useState(false)
+  const [isImageGalleryOpen, setIsImageGalleryOpen] = useState(false)
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0)
+
+  // 合并所有图片：预览图 + 描述中的图片
+  const allImages = useMemo(() => {
+    if (!item) return []
+    const images = [item.previewUrl]
+    const descriptionImages = extractImagesFromDescription(item.description)
+    return [...images, ...descriptionImages]
+  }, [item])
+
+  const handleImageClick = (index: number) => {
+    setSelectedImageIndex(index)
+    setIsImageGalleryOpen(true)
+  }
 
   useEffect(() => {
     loadItem()
-  }, [params.id])
+  }, [unwrappedParams.id])
 
   const loadItem = async () => {
     setLoading(true)
     const [error, data] = await safeAsync(
-      api.get<WorkshopItemDetail>(`/api/workshop/${params.id}`)
+      api.get<WorkshopItemDetail>(`/api/workshop/${unwrappedParams.id}`)
     )
 
     if (error || !data) {
@@ -70,7 +106,7 @@ export default function WorkshopDetailPage({ params }: { params: { id: string } 
     const [error, data] = await safeAsync(
       api.post<{ message: string; mapId: string; existed: boolean }>(
         '/api/maps/import-from-workshop',
-        { workshopId: params.id }
+        { workshopId: unwrappedParams.id }
       )
     )
 
@@ -129,16 +165,12 @@ export default function WorkshopDetailPage({ params }: { params: { id: string } 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* 左侧：图片和基本信息 */}
         <div className="lg:col-span-2 space-y-6">
-          {/* 封面图 */}
-          <Card>
-            <CardContent className="p-0">
-              <img
-                src={item.previewUrl}
-                alt={item.title}
-                className="w-full aspect-video object-cover rounded-lg"
-              />
-            </CardContent>
-          </Card>
+          {/* 图片轮播 */}
+          <ImageCarousel
+            images={allImages}
+            alt={item.title}
+            onImageClick={handleImageClick}
+          />
 
           {/* 描述 */}
           <Card>
@@ -146,9 +178,7 @@ export default function WorkshopDetailPage({ params }: { params: { id: string } 
               <CardTitle>地图描述</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="whitespace-pre-wrap text-sm">
-                {item.description || '暂无描述'}
-              </p>
+              <WorkshopDescription description={item.description} />
             </CardContent>
           </Card>
 
@@ -270,6 +300,13 @@ export default function WorkshopDetailPage({ params }: { params: { id: string } 
           </Card>
         </div>
       </div>
+      {/* 图片画廊弹窗 */}
+      <ImageGallery
+        images={allImages}
+        isOpen={isImageGalleryOpen}
+        onClose={() => setIsImageGalleryOpen(false)}
+        initialIndex={selectedImageIndex}
+      />
     </div>
   )
 }

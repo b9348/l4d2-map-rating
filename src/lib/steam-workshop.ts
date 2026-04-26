@@ -155,36 +155,6 @@ export async function queryWorkshopItems(options: {
 }
 
 /**
- * 获取用户订阅的 Workshop 物品
- */
-export async function getUserSubscribedItems(steamId: string): Promise<WorkshopItem[]> {
-  const url = 'https://api.steampowered.com/IPublishedFileService/GetUserFiles/v1/'
-
-  const params = new URLSearchParams({
-    key: STEAM_API_KEY as string,
-    steamid: steamId,
-    appid: L4D2_APP_ID,
-    return_vote_data: 'true',
-    return_tags: 'true',
-    return_previews: 'true',
-  })
-
-  try {
-    const response = await fetch(`${url}?${params.toString()}`)
-
-    if (!response.ok) {
-      throw new Error(`Steam API 请求失败: ${response.status}`)
-    }
-
-    const data = await response.json()
-    return data.response?.publishedfiledetails || []
-  } catch (error) {
-    console.error('获取用户订阅失败:', error)
-    return []
-  }
-}
-
-/**
  * 从 Workshop URL 提取 ID
  */
 export function extractWorkshopId(input: string): string | null {

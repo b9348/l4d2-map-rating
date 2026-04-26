@@ -36,13 +36,6 @@ export function Navbar() {
                 <span className="hidden sm:inline">Workshop</span>
               </Button>
             </Link>
-            {session?.user?.steamId && (
-              <Link href="/workshop/my-subscriptions">
-                <Button variant="ghost" size="sm" className="hidden md:flex gap-2">
-                  我的订阅
-                </Button>
-              </Link>
-            )}
           </div>
 
           {/* 右侧操作区 */}

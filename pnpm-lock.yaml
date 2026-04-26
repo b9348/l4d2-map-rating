@@ -8,6 +8,21 @@ importers:
 
   .:
     dependencies:
+      '@bbob/core':
+        specifier: ^4.3.1
+        version: 4.3.1
+      '@bbob/parser':
+        specifier: ^4.3.1
+        version: 4.3.1
+      '@bbob/preset-html5':
+        specifier: ^4.3.1
+        version: 4.3.1
+      '@bbob/preset-react':
+        specifier: ^4.3.1
+        version: 4.3.1(react@19.2.4)
+      '@bbob/react':
+        specifier: ^4.3.1
+        version: 4.3.1(react@19.2.4)
       '@hookform/resolvers':
         specifier: ^5.2.2
         version: 5.2.2(react-hook-form@7.72.1(react@19.2.4))
@@ -20,6 +35,9 @@ importers:
       '@types/jsonwebtoken':
         specifier: ^9.0.10
         version: 9.0.10
+      bbcode-to-html:
+        specifier: ^1.0.2
+        version: 1.0.2
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -207,6 +225,37 @@ packages:
   '@babel/types@7.29.0':
     resolution: {integrity: sha512-LwdZHpScM4Qz8Xw2iKSzS+cfglZzJGvofQICy7W7v4caru4EaAmyUuO6BGrbyQ2mYV11W0U8j5mBhd14dd3B0A==}
     engines: {node: '>=6.9.0'}
+
+  '@bbob/core@4.3.1':
+    resolution: {integrity: sha512-qNS5wNY2oJROV5CQ2e29e9dBz4ZuSO7JcciBXM2yDHvKFUYl+J4o8DxOsugce6z2cFpGz6F4J7vJN7X+6ujWiQ==}
+
+  '@bbob/html@4.3.1':
+    resolution: {integrity: sha512-W1qFvBZwhpGkZBNfeRpUFsoF492BlfNmgdh5iczg7B/PDULdOPH5lPLtT/6ZNpyx/xo6/DBssl9YtEO/bm15hw==}
+
+  '@bbob/parser@4.3.1':
+    resolution: {integrity: sha512-BqDo8PDLcVLhFvOMdLmeaWk5qqD8E1bEdvzSJQuJC/U1XFs1tMC4lwZ4oPBFmZCeCLNsYFawqjP/S5MDdr7/Tg==}
+
+  '@bbob/plugin-helper@4.3.1':
+    resolution: {integrity: sha512-0gyhW5sU270iCBvaRO1jYDTs1oGHu913yB9tqxPO9zT5OIDhu47PwensdJ7EuZwgYKEyQ4zZZ+1jvDzkubjdyQ==}
+
+  '@bbob/preset-html5@4.3.1':
+    resolution: {integrity: sha512-6Yn8kOrBWt/2u4ZUt7nSTzWP+xvTaH4TlAds6p+BcBRbs4Ov2f1zkRgCh1JlckMXwhH9q9CGF0wn6w8bkUYcFA==}
+
+  '@bbob/preset-react@4.3.1':
+    resolution: {integrity: sha512-YF7Qwfh75UT4GfU/VEr8STP0nzbRNSGCuBgDMPau2/f1DCBIbqwXhIn8+7MkO4qJ3Lr4Tn1dYh6w1SlroLWRvg==}
+    peerDependencies:
+      react: '> 15.0'
+
+  '@bbob/preset@4.3.1':
+    resolution: {integrity: sha512-we6ITgrwciNIdpZRRJl4y3OOEbXEEVA21895JUInvYXevZBrIgIAvO502qlEYQtqhJqQ1HxY5xyhDjZ9rEYQHg==}
+
+  '@bbob/react@4.3.1':
+    resolution: {integrity: sha512-5UrC3qZF0ViER72Am4wglS8MxKUEaFiswprr4xD5j4zM6OoYr8/UA0ebuahgI+HKP365ewK1PTymmPppUrR2ug==}
+    peerDependencies:
+      react: '> 15.0'
+
+  '@bbob/types@4.3.1':
+    resolution: {integrity: sha512-TXxFPfKvZVH/sR0mfn5I99bEFmbnAzIoqFBxG1htRiKyJUx7Yb/ZNS/OsQD1mIsR6+srDqXFDaWbDgVudTTjvQ==}
 
   '@drizzle-team/brocli@0.10.2':
     resolution: {integrity: sha512-z33Il7l5dKjUgGULTqBsQBQwckHh5AbIuxhdsIxDDiZAzBOrZO6q9ogcWC65kU382AfynTfgNumVcNIjuIua6w==}
@@ -2119,6 +2168,9 @@ packages:
     engines: {node: '>=6.0.0'}
     hasBin: true
 
+  bbcode-to-html@1.0.2:
+    resolution: {integrity: sha512-n44h0wj+GXngO9/wS5b79SZ2QFOOI+o4NCvMwJLnIMBe4MAGDhF2ahWn2aQTGty3uklJ/1dfqEBGkZ8S64kElA==}
+
   brace-expansion@1.1.14:
     resolution: {integrity: sha512-MWPGfDxnyzKU7rNOW9SP/c50vi3xrmrua/+6hfPbCS2ABNWfx24vPidzvC7krjU/RTo235sV776ymlsMtGKj8g==}
 
@@ -3941,6 +3993,55 @@ snapshots:
       '@babel/helper-string-parser': 7.27.1
       '@babel/helper-validator-identifier': 7.28.5
 
+  '@bbob/core@4.3.1':
+    dependencies:
+      '@bbob/parser': 4.3.1
+      '@bbob/plugin-helper': 4.3.1
+      '@bbob/types': 4.3.1
+
+  '@bbob/html@4.3.1':
+    dependencies:
+      '@bbob/core': 4.3.1
+      '@bbob/plugin-helper': 4.3.1
+      '@bbob/types': 4.3.1
+
+  '@bbob/parser@4.3.1':
+    dependencies:
+      '@bbob/plugin-helper': 4.3.1
+      '@bbob/types': 4.3.1
+
+  '@bbob/plugin-helper@4.3.1':
+    dependencies:
+      '@bbob/types': 4.3.1
+
+  '@bbob/preset-html5@4.3.1':
+    dependencies:
+      '@bbob/plugin-helper': 4.3.1
+      '@bbob/preset': 4.3.1
+      '@bbob/types': 4.3.1
+
+  '@bbob/preset-react@4.3.1(react@19.2.4)':
+    dependencies:
+      '@bbob/plugin-helper': 4.3.1
+      '@bbob/preset-html5': 4.3.1
+      '@bbob/types': 4.3.1
+      react: 19.2.4
+
+  '@bbob/preset@4.3.1':
+    dependencies:
+      '@bbob/plugin-helper': 4.3.1
+      '@bbob/types': 4.3.1
+
+  '@bbob/react@4.3.1(react@19.2.4)':
+    dependencies:
+      '@bbob/core': 4.3.1
+      '@bbob/html': 4.3.1
+      '@bbob/plugin-helper': 4.3.1
+      '@bbob/types': 4.3.1
+      react: 19.2.4
+
+  '@bbob/types@4.3.1': {}
+
   '@drizzle-team/brocli@0.10.2': {}
 
   '@emnapi/core@1.10.0':
@@ -5618,6 +5719,8 @@ snapshots:
   balanced-match@4.0.4: {}
 
   baseline-browser-mapping@2.10.20: {}
+
+  bbcode-to-html@1.0.2: {}
 
   brace-expansion@1.1.14:
     dependencies:
