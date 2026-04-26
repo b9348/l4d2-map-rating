@@ -9,9 +9,10 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { mapSchema, type MapInput } from '@/lib/validations'
 import { toast } from 'sonner'
-import { ExternalLink, Plus, X } from 'lucide-react'
+import { ExternalLink, Plus, X, Download, Compass } from 'lucide-react'
 import { api, safeAsync } from '@/lib/http'
 
 export default function SubmitMapPage() {
@@ -19,6 +20,8 @@ export default function SubmitMapPage() {
   const { session, loading } = useAuth()
   const [images, setImages] = useState<string[]>([''])
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [workshopUrl, setWorkshopUrl] = useState('')
+  const [importing, setImporting] = useState(false)
   
   const {
     register,
@@ -68,7 +71,33 @@ export default function SubmitMapPage() {
     window.open('https://www.boltp.com/', '_blank')
   }
   
+  const handleImportFromWorkshop = async () => {
+    if (!workshopUrl.trim()) {
+      toast.error('请输入 Workshop 链接或 ID')
+      return
+    }
+
+    setImporting(true)
+    const [error, data] = await safeAsync(
+      api.post<{ message: string; mapId: string; existed: boolean }>(
+        '/api/maps/import-from-workshop',
+        { workshopId: workshopUrl }
+      )
+    )
+
+    setImporting(false)
+
+    if (error || !data) {
+      toast.error('导入失败: ' + (error?.message || '未知错误'))
+      return
+    }
+
+    toast.success(data.message)
+    router.push(`/maps/${data.mapId}`)
+  }
+
   const onSubmit = async (data: MapInput) => {
+    // 过滤空图片URL
     const validImages = images.filter(img => img.trim() !== '')
 
     if (validImages.length === 0) {
@@ -87,9 +116,12 @@ export default function SubmitMapPage() {
 
     setIsSubmitting(false)
 
-    if (error) return
+    if (error || !result) {
+      toast.error('提交失败: ' + (error?.message || '未知错误'))
+      return
+    }
 
-    toast.success(result!.message)
+    toast.success(result.message)
     router.push('/')
   }
   
@@ -103,7 +135,63 @@ export default function SubmitMapPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          <Tabs defaultValue="workshop" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="workshop">从 Workshop 导入（推荐）</TabsTrigger>
+              <TabsTrigger value="manual">手动填写</TabsTrigger>
+            </TabsList>
+
+            {/* Workshop 导入 */}
+            <TabsContent value="workshop" className="space-y-4">
+              <div className="space-y-4 pt-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">
+                    Workshop 链接或 ID
+                  </label>
+                  <Input
+                    placeholder="粘贴 Steam Workshop 链接或 ID，例如：https://steamcommunity.com/sharedfiles/filedetails/?id=123456789"
+                    value={workshopUrl}
+                    onChange={(e) => setWorkshopUrl(e.target.value)}
+                    disabled={importing}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    支持格式：完整链接、steam:// 协议链接、或纯数字 ID
+                  </p>
+                </div>
+
+                <div className="flex gap-2">
+                  <Button
+                    onClick={handleImportFromWorkshop}
+                    disabled={importing}
+                    className="flex-1 gap-2"
+                  >
+                    <Download className="h-4 w-4" />
+                    {importing ? '导入中...' : '导入地图'}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => router.push('/workshop')}
+                    className="gap-2"
+                  >
+                    <Compass className="h-4 w-4" />
+                    浏览 Workshop
+                  </Button>
+                </div>
+
+                <div className="p-4 bg-muted rounded-lg text-sm text-muted-foreground">
+                  <p className="font-medium mb-2">提示：</p>
+                  <ul className="list-disc list-inside space-y-1">
+                    <li>从 Workshop 导入会自动填充地图信息</li>
+                    <li>你也可以点击"浏览 Workshop"查找地图</li>
+                    <li>导入后可以立即对地图进行评分</li>
+                  </ul>
+                </div>
+              </div>
+            </TabsContent>
+
+            {/* 手动填写 */}
+            <TabsContent value="manual">
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 pt-4">
             {/* 中文名称 */}
             <div className="space-y-2">
               <label className="text-sm font-medium">
@@ -223,6 +311,8 @@ export default function SubmitMapPage() {
               </Button>
             </div>
           </form>
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
     </div>

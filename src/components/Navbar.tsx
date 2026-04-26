@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { Gamepad2, LogIn, LogOut, Plus } from 'lucide-react'
+import { Gamepad2, LogIn, LogOut, Plus, Compass } from 'lucide-react'
 
 export function Navbar() {
   const { session, loading, signOut } = useAuth()
@@ -27,7 +27,24 @@ export function Navbar() {
               L4D2 Maps
             </span>
           </Link>
-          
+
+          {/* 导航链接 */}
+          <div className="flex items-center gap-2">
+            <Link href="/workshop">
+              <Button variant="ghost" size="sm" className="gap-2">
+                <Compass className="h-4 w-4" />
+                <span className="hidden sm:inline">Workshop</span>
+              </Button>
+            </Link>
+            {session?.user?.steamId && (
+              <Link href="/workshop/my-subscriptions">
+                <Button variant="ghost" size="sm" className="hidden md:flex gap-2">
+                  我的订阅
+                </Button>
+              </Link>
+            )}
+          </div>
+
           {/* 右侧操作区 */}
           <div className="flex items-center gap-4">
             {!loading && (

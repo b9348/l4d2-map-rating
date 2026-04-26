@@ -52,12 +52,16 @@ export const maps = mysqlTable('Map', {
   submitterId: varchar('submitterId', { length: 191 }).notNull(),
   averageRating: double('averageRating').default(0).notNull(),
   ratingCount: int('ratingCount').default(0).notNull(),
+  workshopId: varchar('workshopId', { length: 191 }).unique(),
+  steamData: text('steamData'), // JSON string: { rating, subscriptions, favorites, views }
+  lastSyncAt: datetime('lastSyncAt', { fsp: 3 }),
   createdAt: datetime('createdAt', { fsp: 3 }).default(sql`CURRENT_TIMESTAMP(3)`).notNull(),
   updatedAt: datetime('updatedAt', { fsp: 3 }).default(sql`CURRENT_TIMESTAMP(3)`).$onUpdateFn(() => new Date()).notNull(),
 }, (table) => ({
   submitterIdx: index('Map_submitterId_idx').on(table.submitterId),
   createdAtIdx: index('Map_createdAt_idx').on(table.createdAt),
   ratingIdx: index('Map_averageRating_idx').on(table.averageRating),
+  workshopIdx: index('Map_workshopId_idx').on(table.workshopId),
 }));
 
 export const guestIds = mysqlTable('GuestId', {
