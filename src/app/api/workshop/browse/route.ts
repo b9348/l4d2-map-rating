@@ -47,7 +47,7 @@ export async function GET(request: NextRequest) {
           },
         }
       },
-      3600 // 缓存 1 小时
+      searchText ? 3600 : 86400 // 搜索结果缓存 1 小时，默认浏览缓存 24 小时
     )
 
     return NextResponse.json(data)

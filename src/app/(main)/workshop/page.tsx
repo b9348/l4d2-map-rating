@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect, useCallback } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import useSWR from 'swr'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -32,9 +32,30 @@ interface WorkshopItem {
 
 export default function WorkshopPage() {
   const router = useRouter()
-  const [searchText, setSearchText] = useState('')
-  const [sort, setSort] = useState<'popular' | 'recent' | 'trend'>('popular')
-  const [page, setPage] = useState(1)
+  const searchParams = useSearchParams()
+
+  const sort = (searchParams.get('sort') || 'popular') as 'popular' | 'recent' | 'trend'
+  const page = parseInt(searchParams.get('page') || '1')
+  const searchText = searchParams.get('search') || ''
+
+  const [inputText, setInputText] = useState(searchText)
+
+  useEffect(() => {
+    setInputText(searchText)
+  }, [searchText])
+
+  const updateParams = useCallback((updates: Record<string, string>) => {
+    const params = new URLSearchParams(searchParams.toString())
+    for (const [key, value] of Object.entries(updates)) {
+      if (value && value !== '0') {
+        params.set(key, value)
+      } else {
+        params.delete(key)
+      }
+    }
+    const qs = params.toString()
+    router.replace(qs ? `/workshop?${qs}` : '/workshop')
+  }, [searchParams, router])
 
   // 使用 SWR 获取数据，自动缓存和重新验证
   const { data, error, isLoading, mutate } = useSWR(
@@ -46,9 +67,8 @@ export default function WorkshopPage() {
     {
       // 保持缓存数据，后台静默重新验证
       revalidateOnFocus: false,
-      revalidateOnReconnect: true,
-      // 5分钟内不重复请求
-      dedupingInterval: 300000,
+      revalidateOnReconnect: false,
+      revalidateIfStale: false,
       // 错误时重试3次
       retryCount: 3,
       onError: (err) => {
@@ -61,8 +81,7 @@ export default function WorkshopPage() {
   const totalPages = data?.pagination.totalPages || 1
 
   const handleSearch = () => {
-    setPage(1)
-    // SWR 会自动根据新的 key 重新获取数据
+    updateParams({ search: inputText, page: '' })
   }
 
   const handleViewDetails = (id: string) => {
@@ -90,8 +109,8 @@ export default function WorkshopPage() {
         <div className="flex gap-2">
           <Input
             placeholder="搜索地图名称..."
-            value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
+            value={inputText}
+            onChange={(e) => setInputText(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
             className="flex-1"
           />
@@ -110,7 +129,7 @@ export default function WorkshopPage() {
           </Button>
         </div>
 
-        <Tabs value={sort} onValueChange={(v) => setSort(v as any)}>
+        <Tabs value={sort} onValueChange={(v) => updateParams({ sort: v, page: '' })}>
           <TabsList>
             <TabsTrigger value="popular" className="gap-2">
               <TrendingUp className="h-4 w-4" />
@@ -222,7 +241,7 @@ export default function WorkshopPage() {
               <Button
                 variant="outline"
                 disabled={page === 1}
-                onClick={() => setPage(page - 1)}
+                onClick={() => updateParams({ page: String(page - 1) })}
               >
                 上一页
               </Button>
@@ -232,7 +251,7 @@ export default function WorkshopPage() {
               <Button
                 variant="outline"
                 disabled={page === totalPages}
-                onClick={() => setPage(page + 1)}
+                onClick={() => updateParams({ page: String(page + 1) })}
               >
                 下一页
               </Button>
