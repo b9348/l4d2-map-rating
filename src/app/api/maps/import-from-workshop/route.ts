@@ -67,6 +67,7 @@ export async function POST(request: NextRequest) {
       subscriptions: item.subscriptions,
       favorites: item.favorited,
       views: item.views,
+      tags: item.tags?.map(t => t.tag) || [],
     }
 
     await db.insert(maps).values({

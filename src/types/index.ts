@@ -22,6 +22,8 @@ export interface MapData {
   ratingCount: number
   createdAt: Date
   updatedAt: Date
+  workshopId?: string | null
+  tags?: string[]
   submitter?: {
     name: string | null
     avatar: string | null

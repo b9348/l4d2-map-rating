@@ -96,6 +96,8 @@ export async function GET(request: Request) {
           submitterId: maps.submitterId,
           submitterName: users.name,
           submitterAvatar: users.image,
+          workshopId: maps.workshopId,
+          steamData: maps.steamData,
         })
         .from(maps)
         .leftJoin(users, eq(maps.submitterId, users.id))
@@ -107,11 +109,15 @@ export async function GET(request: Request) {
       ])
 
       // 解析images JSON字符串
-      const mapsWithParsedImages = mapsList.map((map: any) => ({
-        ...map,
-        images: JSON.parse(map.images as string),
-        submitter: { name: map.submitterName, avatar: map.submitterAvatar }
-      }))
+      const mapsWithParsedImages = mapsList.map((map: any) => {
+        const steamDataParsed = map.steamData ? JSON.parse(map.steamData) : null
+        return {
+          ...map,
+          images: JSON.parse(map.images as string),
+          submitter: { name: map.submitterName, avatar: map.submitterAvatar },
+          tags: steamDataParsed?.tags || [],
+        }
+      })
 
       return {
         maps: mapsWithParsedImages,

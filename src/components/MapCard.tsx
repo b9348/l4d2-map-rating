@@ -58,13 +58,28 @@ export function MapCard({ map, className }: MapCardProps) {
             </span>
           </div>
           
-          {/* 上传者信息 */}
-          {map.submitter && (
-            <div className="mt-3 pt-3 border-t border-border/50 dark:border-border/50">
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                by {map.submitter.name || '匿名用户'}
-              </p>
-            </div>
+          {/* 底部信息：创意工坊地图显示 tags，手动添加显示上传者 */}
+          {map.workshopId ? (
+            map.tags && map.tags.length > 0 && (
+              <div className="mt-3 pt-3 border-t border-border/50 dark:border-border/50 flex flex-wrap gap-1">
+                {map.tags.slice(0, 3).map((tag) => (
+                  <span
+                    key={tag}
+                    className="text-xs px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            )
+          ) : (
+            map.submitter && (
+              <div className="mt-3 pt-3 border-t border-border/50 dark:border-border/50">
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  by {map.submitter.name || '匿名用户'}
+                </p>
+              </div>
+            )
           )}
         </CardContent>
       </Card>
